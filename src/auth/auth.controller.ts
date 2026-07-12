@@ -17,7 +17,7 @@ import { memoryStorage } from 'multer';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterStudentDto, RegisterTeacherDto } from './dto/register.dto';
-import { RefreshTokenDto, ChangePasswordDto } from './dto/token.dto';
+import { RefreshTokenDto, ChangePasswordDto, ChangePhoneDto } from './dto/token.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
@@ -116,6 +116,17 @@ export class AuthController {
   ) {
     const result = await this.authService.changePassword(userId, dto);
     return successResponse(result, 'Password changed');
+  }
+
+  @Post('change-phone')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async changePhone(
+    @CurrentUser('id') userId: string,
+    @Body() dto: ChangePhoneDto,
+  ) {
+    const result = await this.authService.changePhone(userId, dto);
+    return successResponse(result, 'Phone number changed');
   }
 
   @Get('me')

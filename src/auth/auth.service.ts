@@ -11,7 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterStudentDto, RegisterTeacherDto } from './dto/register.dto';
-import { ChangePasswordDto } from './dto/token.dto';
+import { ChangePasswordDto, ChangePhoneDto } from './dto/token.dto';
 import { UserRole } from '@prisma/client';
 
 @Injectable()
@@ -225,6 +225,35 @@ export class AuthService {
     await this.prisma.refreshToken.deleteMany({ where: { userId } });
 
     return { message: 'Password changed successfully' };
+  }
+
+  async changePhone(userId: string, dto: ChangePhoneDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    // Verify current password
+    const isValid = await bcrypt.compare(dto.currentPassword, user.password);
+    if (!isValid) throw new BadRequestException('Current password is incorrect');
+
+    // Check new phone is different
+    if (user.phone === dto.newPhone) {
+      throw new BadRequestException('New phone number is the same as current');
+    }
+
+    // Check phone uniqueness
+    const existing = await this.prisma.user.findUnique({
+      where: { phone: dto.newPhone },
+    });
+    if (existing) throw new ConflictException('Phone number already in use');
+
+    // Update phone and invalidate all sessions (force re-login)
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { phone: dto.newPhone },
+    });
+    await this.prisma.refreshToken.deleteMany({ where: { userId } });
+
+    return { message: 'Phone number changed successfully. Please log in again.' };
   }
 
   async getMe(userId: string) {
