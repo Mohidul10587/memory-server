@@ -25,6 +25,26 @@ export class UpdateStudentProfileDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(100)
+  division?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  district?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  upazila?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  union?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(255)
   currentAddress?: string;
 
