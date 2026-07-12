@@ -107,14 +107,25 @@ export class TeachersService {
       throw new ForbiddenException('You can only edit your own profile');
     }
 
-    const profile = await this.prisma.teacherProfile.findUnique({ where: { userId } });
-    if (!profile) throw new NotFoundException('Profile not found');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
 
-    const updated = await this.prisma.teacherProfile.update({
+    const data = {
+      ...dto,
+      ...(profileImage && { profileImage }),
+    };
+
+    // upsert: create profile if it doesn't exist yet
+    const updated = await this.prisma.teacherProfile.upsert({
       where: { userId },
-      data: {
-        ...dto,
-        ...(profileImage && { profileImage }),
+      update: data,
+      create: {
+        userId,
+        name: dto.name || '',
+        joiningYear: dto.joiningYear || new Date().getFullYear(),
+        subject: dto.subject || '',
+        designation: dto.designation || '',
+        ...data,
       },
     });
 
@@ -126,17 +137,25 @@ export class TeachersService {
       throw new ForbiddenException('You can only edit your own profile');
     }
 
-    const profile = await this.prisma.teacherProfile.findUnique({ where: { userId } });
-    if (!profile) throw new NotFoundException('Profile not found');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
 
     const imageUrl = await this.cloudinaryService.uploadImage(
       file,
       'school-alumni/profiles',
     );
 
-    const updated = await this.prisma.teacherProfile.update({
+    const updated = await this.prisma.teacherProfile.upsert({
       where: { userId },
-      data: { profileImage: imageUrl },
+      update: { profileImage: imageUrl },
+      create: {
+        userId,
+        name: '',
+        joiningYear: new Date().getFullYear(),
+        subject: '',
+        designation: '',
+        profileImage: imageUrl,
+      },
     });
 
     return successResponse(updated, 'Profile image updated');

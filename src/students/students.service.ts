@@ -156,14 +156,24 @@ export class StudentsService {
       throw new ForbiddenException('You can only edit your own profile');
     }
 
-    const profile = await this.prisma.studentProfile.findUnique({ where: { userId } });
-    if (!profile) throw new NotFoundException('Profile not found');
+    // Verify the user exists and is a student
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
 
-    const updated = await this.prisma.studentProfile.update({
+    const data = {
+      ...dto,
+      ...(profileImage && { profileImage }),
+    };
+
+    // upsert: create profile if it doesn't exist yet
+    const updated = await this.prisma.studentProfile.upsert({
       where: { userId },
-      data: {
-        ...dto,
-        ...(profileImage && { profileImage }),
+      update: data,
+      create: {
+        userId,
+        name: dto.name || '',
+        sscPassingYear: dto.sscPassingYear || new Date().getFullYear(),
+        ...data,
       },
     });
 
@@ -175,17 +185,23 @@ export class StudentsService {
       throw new ForbiddenException('You can only edit your own profile');
     }
 
-    const profile = await this.prisma.studentProfile.findUnique({ where: { userId } });
-    if (!profile) throw new NotFoundException('Profile not found');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
 
     const imageUrl = await this.cloudinaryService.uploadImage(
       file,
       'school-alumni/profiles',
     );
 
-    const updated = await this.prisma.studentProfile.update({
+    const updated = await this.prisma.studentProfile.upsert({
       where: { userId },
-      data: { profileImage: imageUrl },
+      update: { profileImage: imageUrl },
+      create: {
+        userId,
+        name: '',
+        sscPassingYear: new Date().getFullYear(),
+        profileImage: imageUrl,
+      },
     });
 
     return successResponse(updated, 'Profile image updated');
