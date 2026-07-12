@@ -63,7 +63,7 @@ export class TeachersController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
-          new FileTypeValidator({ fileType: /^image\/(jpeg|png|webp)$/ }),
+          new FileTypeValidator({ fileType: 'image/(jpeg|png|webp)' }),
         ],
       }),
     )
