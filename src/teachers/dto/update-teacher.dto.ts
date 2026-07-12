@@ -1,0 +1,62 @@
+import {
+  IsString,
+  IsInt,
+  Min,
+  Max,
+  IsOptional,
+  IsEmail,
+  IsUrl,
+  MaxLength,
+  IsEnum,
+} from 'class-validator';
+import { BloodGroup } from '@prisma/client';
+
+export class UpdateTeacherProfileDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  name?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1971)
+  @Max(new Date().getFullYear())
+  joiningYear?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  subject?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  designation?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  currentAddress?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  permanentAddress?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsUrl()
+  facebookProfile?: string;
+
+  @IsOptional()
+  @IsEnum(BloodGroup)
+  bloodGroup?: BloodGroup;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  about?: string;
+}

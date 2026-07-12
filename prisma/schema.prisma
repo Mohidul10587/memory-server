@@ -1,0 +1,140 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  STUDENT
+  TEACHER
+}
+
+enum BloodGroup {
+  A_POSITIVE
+  A_NEGATIVE
+  B_POSITIVE
+  B_NEGATIVE
+  O_POSITIVE
+  O_NEGATIVE
+  AB_POSITIVE
+  AB_NEGATIVE
+}
+
+model School {
+  id            String   @id @default(uuid())
+  name          String
+  eiin          String?  @unique
+  logo          String?
+  coverPhoto    String?
+  establishedYear Int
+  address       String
+  upazila       String
+  district      String
+  division      String
+  phone         String?
+  email         String?
+  website       String?
+  facebookPage  String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  users         User[]
+
+  @@index([name])
+  @@index([district])
+  @@index([division])
+}
+
+model User {
+  id            String   @id @default(uuid())
+  phone         String   @unique
+  password      String
+  role          UserRole
+  schoolId      String
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  school        School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  
+  studentProfile StudentProfile?
+  teacherProfile TeacherProfile?
+  refreshTokens  RefreshToken[]
+
+  @@index([phone])
+  @@index([schoolId])
+  @@index([role])
+  @@index([schoolId, role])
+}
+
+model StudentProfile {
+  id              String     @id @default(uuid())
+  userId          String     @unique
+  name            String
+  profileImage    String?
+  sscPassingYear  Int
+  currentAddress  String?
+  permanentAddress String?
+  profession      String?
+  workplace       String?
+  email           String?
+  facebookProfile String?
+  bloodGroup      BloodGroup?
+  about           String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sscPassingYear])
+  @@index([profession])
+  @@index([bloodGroup])
+}
+
+model TeacherProfile {
+  id              String     @id @default(uuid())
+  userId          String     @unique
+  name            String
+  profileImage    String?
+  joiningYear     Int
+  subject         String
+  designation     String
+  currentAddress  String?
+  permanentAddress String?
+  email           String?
+  facebookProfile String?
+  bloodGroup      BloodGroup?
+  about           String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([joiningYear])
+  @@index([subject])
+  @@index([bloodGroup])
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  userId      String
+  token       String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}
