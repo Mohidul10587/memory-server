@@ -5,9 +5,15 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { successResponse, paginatedResponse } from '../common/helpers/response.helper';
+import {
+  successResponse,
+  paginatedResponse,
+} from '../common/helpers/response.helper';
 import { AdminUserFilterDto } from './dto/admin-user-filter.dto';
-import { AdminUpdateStudentDto, AdminUpdateTeacherDto } from './dto/admin-update-user.dto';
+import {
+  AdminUpdateStudentDto,
+  AdminUpdateTeacherDto,
+} from './dto/admin-update-user.dto';
 import { UserRole } from '@prisma/client';
 
 @Injectable()
@@ -62,9 +68,21 @@ export class UsersService {
 
     // Build profile location filter
     const profileLocationFilter: any = {};
-    if (division) profileLocationFilter.division = { contains: division, mode: 'insensitive' };
-    if (district) profileLocationFilter.district = { contains: district, mode: 'insensitive' };
-    if (upazila) profileLocationFilter.upazila = { contains: upazila, mode: 'insensitive' };
+    if (division)
+      profileLocationFilter.division = {
+        contains: division,
+        mode: 'insensitive',
+      };
+    if (district)
+      profileLocationFilter.district = {
+        contains: district,
+        mode: 'insensitive',
+      };
+    if (upazila)
+      profileLocationFilter.upazila = {
+        contains: upazila,
+        mode: 'insensitive',
+      };
 
     if (search) {
       userWhere.OR = [
@@ -122,7 +140,9 @@ export class UsersService {
           isActive: true,
           createdAt: true,
           schoolId: true,
-          school: { select: { id: true, name: true, logo: true, district: true } },
+          school: {
+            select: { id: true, name: true, logo: true, district: true },
+          },
           studentProfile: {
             select: {
               id: true,
@@ -172,14 +192,23 @@ export class UsersService {
         createdAt: true,
         updatedAt: true,
         schoolId: true,
-        school: { select: { id: true, name: true, logo: true, district: true, division: true } },
+        school: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+            district: true,
+            division: true,
+          },
+        },
         studentProfile: true,
         teacherProfile: true,
       },
     });
 
     if (!user) throw new NotFoundException('User not found');
-    if (user.role === UserRole.SUPER_ADMIN) throw new ForbiddenException('Cannot view super admin');
+    if (user.role === UserRole.SUPER_ADMIN)
+      throw new ForbiddenException('Cannot view super admin');
 
     return successResponse(user, 'User fetched');
   }
@@ -195,7 +224,8 @@ export class UsersService {
     if (user.role !== UserRole.STUDENT) {
       throw new BadRequestException('User is not a student');
     }
-    if (!user.studentProfile) throw new NotFoundException('Student profile not found');
+    if (!user.studentProfile)
+      throw new NotFoundException('Student profile not found');
 
     const { isActive, ...profileData } = dto;
 
@@ -229,7 +259,8 @@ export class UsersService {
     if (user.role !== UserRole.TEACHER) {
       throw new BadRequestException('User is not a teacher');
     }
-    if (!user.teacherProfile) throw new NotFoundException('Teacher profile not found');
+    if (!user.teacherProfile)
+      throw new NotFoundException('Teacher profile not found');
 
     const { isActive, ...profileData } = dto;
 
@@ -285,14 +316,19 @@ export class UsersService {
 
   // ─── Super Admin: Stats ────────────────────────────────────────────────────
   async getStats() {
-    const [totalSchools, totalStudents, totalTeachers, activeStudents, activeTeachers] =
-      await Promise.all([
-        this.prisma.school.count({ where: { isActive: true } }),
-        this.prisma.user.count({ where: { role: 'STUDENT' } }),
-        this.prisma.user.count({ where: { role: 'TEACHER' } }),
-        this.prisma.user.count({ where: { role: 'STUDENT', isActive: true } }),
-        this.prisma.user.count({ where: { role: 'TEACHER', isActive: true } }),
-      ]);
+    const [
+      totalSchools,
+      totalStudents,
+      totalTeachers,
+      activeStudents,
+      activeTeachers,
+    ] = await Promise.all([
+      this.prisma.school.count({ where: { isActive: true } }),
+      this.prisma.user.count({ where: { role: 'STUDENT' } }),
+      this.prisma.user.count({ where: { role: 'TEACHER' } }),
+      this.prisma.user.count({ where: { role: 'STUDENT', isActive: true } }),
+      this.prisma.user.count({ where: { role: 'TEACHER', isActive: true } }),
+    ]);
 
     return successResponse(
       {
